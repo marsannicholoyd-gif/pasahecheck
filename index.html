@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1827" />
+  <meta name="description" content="PasaheCheck is a free prototype for estimating traditional and modern jeepney fares using GPS or manual distance." />
+  <title>PasaheCheck — Jeepney Fare Tracker</title>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzxK+S4TBZMwpnTVm6H0nQ="> 
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="></script>
+  <script defer src="fare-engine.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#top" aria-label="PasaheCheck home"><span class="brand-symbol">P<span class="symbol-dot">.</span></span><span>Pasahe<span class="brand-accent">Check</span></span></a>
+      <div class="header-right"><span class="signal"><span class="signal-dot"></span> Prototype • Cebu City</span><a class="about-link" href="#how-it-works">How it works <span aria-hidden="true">↗</span></a></div>
+    </div>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="intro" aria-labelledby="headline">
+      <div class="intro-copy"><div class="eyebrow"><span class="eyebrow-line"></span> YOUR RIDE. YOUR FARE.</div><h1 id="headline">Know your fare<br><em>before you pay.</em></h1><p>Estimate jeepney fares using your phone's GPS. See your distance, check your fare, and travel with more confidence.</p></div>
+      <div class="intro-aside"><span class="small-label">BUILT FOR EVERY COMMUTER</span><div class="aside-stat">₱0<span class="aside-suffix"> to get started</span></div><div class="aside-rule"></div><p>No account. No payment. No trip data uploaded.</p></div>
+    </section>
+
+    <div class="dashboard">
+      <section class="panel ride-panel" aria-labelledby="ride-heading">
+        <div class="panel-top"><div><span class="section-index">01 / PLAN YOUR RIDE</span><h2 id="ride-heading">Ride details</h2></div><span class="tiny-pill">Jeepneys</span></div>
+
+        <div class="field-label">Vehicle type</div>
+        <div class="vehicle-options" role="group" aria-label="Jeepney type">
+          <button type="button" class="vehicle-option active" data-vehicle="traditional" aria-pressed="true"><span class="option-icon" aria-hidden="true">🚐</span><span class="option-text"><strong>Traditional</strong><small>₱14 for first 4 km</small></span><span class="option-check" aria-hidden="true">✓</span></button>
+          <button type="button" class="vehicle-option" data-vehicle="modern" aria-pressed="false"><span class="option-icon" aria-hidden="true">🚌</span><span class="option-text"><strong>Modern</strong><small>₱17 for first 4 km</small></span><span class="option-check" aria-hidden="true">✓</span></button>
+        </div>
+        <label class="route-label" for="routeCode">Jeepney route / code <span>(optional)</span></label>
+        <input class="text-input" id="routeCode" maxlength="40" placeholder="e.g. 13C, 04L, 17B" autocomplete="off" />
+        <p class="input-help">Route code is for your reference only; verified route matching is not yet enabled.</p>
+
+        <div class="separator"></div>
+        <div class="mode-heading"><div class="field-label">Tracking mode</div><span class="muted-note">Switch anytime before a ride</span></div>
+        <div class="mode-switch" role="group" aria-label="Tracking mode"><button id="demoModeBtn" type="button" class="mode-button selected" aria-pressed="true">Demo calculator</button><button id="gpsModeBtn" type="button" class="mode-button" aria-pressed="false">Live GPS ride <span class="live-mini"></span></button></div>
+
+        <div id="demoControls" class="control-panel">
+          <div class="slider-top"><label class="route-label" for="demoKm">Distance traveled</label><output id="demoKmDisplay" for="demoKm">9.0 km</output></div>
+          <input type="range" id="demoKm" min="0" max="30" step="0.1" value="9" />
+          <div class="slider-ends"><span>0 km</span><span>30 km</span></div>
+          <p class="input-help">Move the slider to simulate a ride and instantly calculate a fare.</p>
+        </div>
+
+        <div id="gpsControls" class="control-panel" hidden>
+          <div class="location-status" id="gpsStatus" role="status"><span class="status-icon">◎</span><span id="gpsStatusText">Ready to request location permission.</span></div>
+          <div class="gps-buttons"><button id="startRideBtn" type="button" class="btn-primary">▶ Start GPS ride</button><button id="endRideBtn" type="button" class="btn-secondary" disabled>■ End ride</button></div>
+          <div class="gps-meta"><span>GPS accuracy: <strong id="accuracyDisplay">—</strong></span><span>Points logged: <strong id="pointsDisplay">0</strong></span></div>
+          <p class="input-help">Keep this page open and visible. GPS needs your permission and HTTPS (or localhost). Distances are approximations.</p>
+        </div>
+
+        <label class="discount-row" for="discountCheck"><span class="discount-copy"><strong>Discounted passenger</strong><small>Student, senior citizen, or PWD (20% off)</small></span><span class="switch"><input id="discountCheck" type="checkbox" /><span class="switch-track"></span></span></label>
+      </section>
+
+      <section class="panel map-panel" aria-labelledby="map-heading">
+        <div class="panel-top map-top"><div><span class="section-index">02 / JOURNEY OVERVIEW</span><h2 id="map-heading">Your journey</h2></div><span id="mapBadge" class="map-badge">DEMO MODE</span></div>
+        <div class="map-shell"><div id="map" aria-label="Map centered on Cebu City"></div><div id="mapFallback" class="map-fallback" hidden><span>◎</span><strong>Map tiles unavailable</strong><small>Your fare calculator still works. Connect to the internet to load the map.</small></div><div class="map-floating"><span class="map-dot"></span><span id="mapFloatingText">Map centered on Cebu City</span></div></div>
+        <div class="map-footer"><div><span class="map-footer-label">ESTIMATED DISTANCE</span><strong id="distanceDisplay">9.00 <span>km</span></strong></div><div class="map-footer-right"><span class="map-footer-label">ADDITIONAL KM</span><strong id="additionalDisplay">5.00 <span>km</span></strong></div></div>
+      </section>
+
+      <section class="panel fare-panel" aria-labelledby="fare-heading">
+        <div class="fare-topline"><div><span class="section-index">03 / FARE ESTIMATE</span><h2 id="fare-heading">Your estimated fare</h2></div><span class="fare-icon" aria-hidden="true">₱</span></div>
+        <div class="fare-value" id="fareDisplay" aria-live="polite">₱24<span>.00</span></div>
+        <span class="fare-subtitle" id="fareSubtitle">Regular fare • Traditional jeepney</span>
+        <div class="breakdown"><div><span>Base fare (first 4 km)</span><strong id="baseDisplay">₱14.00</strong></div><div><span>Succeeding distance</span><strong id="extraDisplay">₱10.00</strong></div><div><span>Passenger discount</span><strong id="discountDisplay">−₱0.00</strong></div><div class="breakdown-total"><span>Estimated total</span><strong id="totalDisplay">₱24.00</strong></div></div>
+        <div class="fare-caution"><span aria-hidden="true">ⓘ</span><p>For guidance only. GPS measures the phone's path, not the official fareable route distance. Compare with the posted LTFRB fare matrix.</p></div>
+      </section>
+
+      <section class="panel compare-panel" aria-labelledby="compare-heading"><div class="panel-top"><div><span class="section-index">04 / COMPARE YOUR FARE</span><h2 id="compare-heading">Did you pay the right amount?</h2></div></div>
+        <label class="route-label" for="chargedAmount">Fare charged by the conductor</label>
+        <div class="peso-field"><span>₱</span><input id="chargedAmount" type="number" min="0" step="0.25" inputmode="decimal" placeholder="Enter amount paid" /></div>
+        <div class="comparison-result neutral" id="comparisonResult" role="status"><span class="comparison-symbol">↔</span><div><strong>Ready to compare</strong><small>Enter the fare you were charged to check the difference.</small></div></div>
+        <p class="compare-disclaimer">A difference is not proof of overcharging. Check the official fare matrix, discount eligibility, and approved route first.</p>
+      </section>
+    </div>
+
+    <section id="how-it-works" class="how-section"><div class="how-title"><span class="section-index">THE SIMPLE PROCESS</span><h2>Three steps. That's it.</h2></div><div class="steps"><div class="step"><span>01</span><h3>Select your jeepney</h3><p>Choose traditional or modern, and enter the route code if you know it.</p></div><div class="step"><span>02</span><h3>Track your trip</h3><p>Use Demo to test, or Live GPS to track approximate distance on your phone.</p></div><div class="step"><span>03</span><h3>Compare the fare</h3><p>See the estimated amount and compare it with your actual fare.</p></div></div></section>
+
+    <footer><div class="footer-brand">Pasahe<span>Check</span></div><p>Free passenger-focused prototype. No login. Location data stays in your browser session and is not uploaded by this app.</p><div class="footer-links"><a href="https://www.ltfrb.gov.ph/" target="_blank" rel="noopener noreferrer">LTFRB ↗</a><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">Map data © OpenStreetMap ↗</a></div></footer>
+  </main>
+</body>
+</html>

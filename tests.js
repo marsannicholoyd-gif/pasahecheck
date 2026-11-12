@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const { calculateFare } = require('./fare-engine.js');
+const close = (a, b) => assert.ok(Math.abs(a - b) < .000001, `${a} != ${b}`);
+close(calculateFare(0,'traditional').total, 14);
+close(calculateFare(4,'traditional').total, 14);
+close(calculateFare(5,'traditional').total, 16);
+close(calculateFare(9,'traditional').total, 24);
+close(calculateFare(9,'modern').total, 29);
+close(calculateFare(9,'traditional',true).total, 19.25);
+close(calculateFare(4,'traditional',true).total, 11.25);
+close(calculateFare(4,'modern',true).total, 13.5);
+close(calculateFare(4.5,'modern').total, 18.25);
+assert.throws(() => calculateFare(-1,'modern'), RangeError);
+console.log('All 10 starter fare calculation tests passed.');
