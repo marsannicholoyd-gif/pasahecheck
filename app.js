@@ -188,6 +188,8 @@
       L.control.zoom({position: 'topright'}).addTo(map);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
+        // Explicitly send the origin referrer required by the OSM tile policy.
+        referrerPolicy: 'strict-origin-when-cross-origin',
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
       }).addTo(map);
       state.map = map;
